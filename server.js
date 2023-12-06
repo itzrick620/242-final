@@ -13,7 +13,7 @@ mongoose
     .catch((error) => console.log("Couldn't connect to mongodb", error));
 
 app.get("/", (req, res) => {
-    res.sendFile(__dirname + "../index.html");
+    res.sendFile(__dirname + "/../index.html");
 });
 
 // Create a mongoose model for pages
