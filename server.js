@@ -108,8 +108,8 @@ const updateDog = async (req, res) => {
   }
 
   const result = await Dog.updateOne({_id: req.params.id}, fieldsToUpdate);
-  const project = await Dog.findById(req.params.id);
-  res.send(project);
+  const dog = await Dog.findById(req.params.id);
+  res.send(dog);
 };
 
 app.delete("/api/dogs/:id", upload.single("img"), (req, res) => {
