@@ -1,8 +1,24 @@
-const express = require('express');
-const path = require('path');
-const mongoose = require('mongoose');
-
+const express = require("express");
 const app = express();
+const Joi = require("joi");
+const multer = require("multer");
+app.use(express.static("public"));
+app.use("/uploads", express.static("uploads"));
+app.use(express.json());
+const cors = require("cors");
+app.use(cors());
+const mongoose = require("mongoose");
+
+const storage = multer.diskStorage({
+  destination:(req, file, cb) => {
+    cb(null, "./uploads");
+  },
+  filename:(req, file, cb) => {
+    cb(null, file.originalname);
+  }
+});
+
+const upload = multer({storage: storage});
 
 // Connect to MongoDB
 mongoose
@@ -12,39 +28,110 @@ mongoose
     })
     .catch((error) => console.log("Couldn't connect to mongodb", error));
 
-app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/../index.html");
+// Create a schema 
+const dogSchema = new mongoose.Schema({
+    owner:String,
+    emailOwner:String,
+    dogName:String,
+    img:String,
+    desc:String,
 });
 
-// Create a mongoose model for pages
-const Page = mongoose.model('Page', {
-  folderName: String,
-  title: String,
-  content: String,
+const Dog = mongoose.model(Dog, dogSchema);
+
+app.get("/api/dogs", (req, res) => {
+  getDogs(res);
 });
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+const getDogs = async (res) => {
+  const dogs = await Dog.find();
+  res.send(dogs);
+}
 
-// Handle wildcard route to serve files dynamically from MongoDB
-app.get('/:folderName', async (req, res) => {
-  const folderName = req.params.folderName;
+app.get("/api/dogs:id", (req, res) => {
+  getDog(res, req.params.id);
+});
 
-  try {
-    // Fetch data from MongoDB based on the folderName
-    const page = await Page.findOne({ folderName });
+const getDog = async(res, id) => {
+  const dog = await Dog.findOne({ _id: id });
+  res.send(dog);
+}
 
-    if (page) {
-      res.sendFile(path.join(__dirname, 'public', folderName, 'index.html'));
-    } else {
-      res.status(404).send('Page not found');
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
+app.post("/api/dogs", upload.single("img"), (req, res) => {
+  const result = validateDog(req.body);
+
+  if (result.error) {
+      res.status(400).send(result.error.details[0].message);
+      return;
   }
+
+  const dog = new Dog({
+      owner: req.body.owner,
+      emailOwner: req.body.emailOwner,
+      dogName: req.body.dogName,
+      desc: req.body.desc,
+  });
+
+  if (req.file) {
+      dog.img = "uploads/" + req.file.filename;
+  }
+
+  createDog(dog, res);
 });
 
+const createDog = async (dog, res) => {
+  const result = await dog.save();
+  res.send(dog);
+};
+
+app.put("/api/dogs/:id", upload.single("img"), (req, res) => {
+  const result = validateDog(req.body);
+
+  if (result.error) {
+      res.status(400).send(result.error.details[0].message);
+      return;
+  }
+
+  updateDog(req, res);
+});
+
+const updateDog = async (req, res) => {
+  let fieldsToUpdate = {
+    owner: req.body.owner,
+    emailOwner: req.body.emailOwner,
+    dogName: req.body.dogName,
+    desc: req.body.desc,
+  };
+
+  if(req.file) {
+      fieldsToUpdate.img = "uploads/" + req.file.filename;
+  }
+
+  const result = await Dog.updateOne({_id: req.params.id}, fieldsToUpdate);
+  const project = await Dog.findById(req.params.id);
+  res.send(project);
+};
+
+app.delete("/api/dogs/:id", upload.single("img"), (req, res) => {
+  removeDog(res, req.params.id);
+});
+
+const removeDog = async (res, id) => {
+  const dog = await Dog.findByIdAndDelete(id);
+  res.send(dog);
+};
+
+const validateDog = (dog) => {
+  const schema = Joi.object({
+      _id: Joi.allow(""),
+      desc: Joi.allow(""),
+      dogName: Joi.string().min(3).required(),
+      owner: Joi.string().min(3).required(),
+      emailOwner: Joi.string().min(3).required(),
+  });
+
+  return schema.validate(dog);
+};
 const PORT = 3000;
 
 app.listen(PORT, () => {
