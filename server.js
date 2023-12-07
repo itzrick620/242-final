@@ -37,8 +37,9 @@ const dogSchema = new mongoose.Schema({
     desc:String,
 });
 
-const Dog = mongoose.model(Dog, dogSchema);
+const Dog = mongoose.model("Dog", dogSchema);
 
+//Route
 app.get("/api/dogs", (req, res) => {
   getDogs(res);
 });
@@ -132,6 +133,11 @@ const validateDog = (dog) => {
 
   return schema.validate(dog);
 };
+
+app.get("/", (req, res) => {
+  res.send("Dog API Working")
+})
+
 const PORT = 3000;
 
 app.listen(PORT, () => {
