@@ -11,7 +11,7 @@ const mongoose = require("mongoose");
 
 const storage = multer.diskStorage({
   destination:(req, file, cb) => {
-    cb(null, "./uploads");
+    cb(null, "./public");
   },
   filename:(req, file, cb) => {
     cb(null, file.originalname);
@@ -133,6 +133,31 @@ const validateDog = (dog) => {
 
   return schema.validate(dog);
 };
+
+//Route to serve adopt_a_stray
+app.get("/adopt_a_stray", (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'adopt_a_stray', 'index.html'));
+});
+
+// Route to serve donate index.html
+app.get("/donate", (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'donate', 'index.html'));
+});
+
+// Route to serve get_involved index.html
+app.get("/get_involved", (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'get_involved', 'index.html'));
+});
+
+// Route to serve home index.html
+app.get("/home", (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'home', 'index.html'));
+});
+
+// Route to serve success_story index.html
+app.get("/success_story", (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'success_story', 'index.html'));
+});
 
 app.get("/", (req, res) => {
   res.send("Dog API Working")
