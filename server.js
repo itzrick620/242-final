@@ -11,7 +11,7 @@ const mongoose = require("mongoose");
 
 const storage = multer.diskStorage({
   destination:(req, file, cb) => {
-    cb(null, "./public");
+    cb(null, "/public");
   },
   filename:(req, file, cb) => {
     cb(null, file.originalname);
@@ -31,7 +31,6 @@ mongoose
 // Create a schema 
 const dogSchema = new mongoose.Schema({
     owner:String,
-    emailOwner:String,
     dogName:String,
     img:String,
     desc:String,
@@ -50,13 +49,9 @@ const getDogs = async (res) => {
 }
 
 app.get("/api/dogs:id", (req, res) => {
-  getDog(res, req.params.id);
+  res.send(dogs);
 });
 
-const getDog = async(res, id) => {
-  const dog = await Dog.findOne({ _id: id });
-  res.send(dog);
-}
 
 app.post("/api/dogs", upload.single("img"), (req, res) => {
   const result = validateDog(req.body);
@@ -74,7 +69,7 @@ app.post("/api/dogs", upload.single("img"), (req, res) => {
   });
 
   if (req.file) {
-      dog.img = "uploads/" + req.file.filename;
+      dog.img = "public/" + req.file.filename;
   }
 
   createDog(dog, res);
@@ -105,7 +100,7 @@ const updateDog = async (req, res) => {
   };
 
   if(req.file) {
-      fieldsToUpdate.img = "uploads/" + req.file.filename;
+      fieldsToUpdate.img = "public/" + req.file.filename;
   }
 
   const result = await Dog.updateOne({_id: req.params.id}, fieldsToUpdate);
@@ -133,31 +128,6 @@ const validateDog = (dog) => {
 
   return schema.validate(dog);
 };
-
-//Route to serve adopt_a_stray
-app.get("/adopt_a_stray", (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'adopt_a_stray', 'index.html'));
-});
-
-// Route to serve donate index.html
-app.get("/donate", (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'donate', 'index.html'));
-});
-
-// Route to serve get_involved index.html
-app.get("/get_involved", (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'get_involved', 'index.html'));
-});
-
-// Route to serve home index.html
-app.get("/home", (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'home', 'index.html'));
-});
-
-// Route to serve success_story index.html
-app.get("/success_story", (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'success_story', 'index.html'));
-});
 
 app.get("/", (req, res) => {
   res.send("Dog API Working")

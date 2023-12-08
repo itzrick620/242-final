@@ -4,12 +4,12 @@ const toggleNav = () => {
   
   const getDogs = async () => {
     try {
-      return (await fetch("https://two42-final.onrender.com/api/dogs")).json();
+      return (await fetch("api/dogs/")).json();
     } catch (error) {
       console.log(error);
     }
   };
-  
+
   const showDogs = async () => {
     try {
       const response = await getDogs();
@@ -20,19 +20,19 @@ const toggleNav = () => {
         dogs.forEach((dog) => {
           const section = document.createElement("section");
           section.classList.add("dog");
-          dogsDiv.appendChild(section);
+          dogsDiv.append(section);
   
           const a = document.createElement("a");
           a.href = "#";
-          section.appendChild(a);
+          section.append(a);
   
           const h3 = document.createElement("h3");
-          h3.textContent = dog.name;
-          a.appendChild(h3);
+          h3.innerHTML = dog.name;
+          a.append(h3);
   
           const img = document.createElement("img");
           img.src = "https://two42-final.onrender.com" + dog.img;
-          section.appendChild(img);
+          section.append(img);
   
           a.onclick = (e) => {
             e.preventDefault();
@@ -65,9 +65,9 @@ const toggleNav = () => {
     h3.innerHTML = dog.name;
     dogDetails.append(h3);
   
-    const link = document.createElement("p");
-    dogDetails.append(link);
-    link.innerHTML = dog.link;
+    const ownerName = document.createElement("p");
+    dogDetails.append(ownerName);
+    ownerName.innerHTML = dog.ownerName;
   
     const ul = document.createElement("ul");
     dogDetails.append(ul);
@@ -115,7 +115,7 @@ const toggleNav = () => {
     const form = document.getElementById("add-edit-dog-form");
     form._id.value = dog._id;
     form.name.value = dog.name;
-    form.link.value = dog.link;
+    form.ownerName.value = dog.ownerName;
     populateDesc(dog);
   };
   

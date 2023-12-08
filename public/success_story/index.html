@@ -25,11 +25,46 @@
                 </ul>
             </nav>
         </header>
-        <main id="main-content" class="columns">
-            <div id="success-story-blurb">
-                <p>Here, we celebrate the remarkable journeys of dogs who've found their forever homes and the joy they bring to their adoptive families. These heartwarming tales of resilience, love, and second chances serve as a testament to the profound impact of dog adoption and inspire others to open their hearts and homes to deserving canine companions.</p>
+
+            <div class="columns two-columns">
+                <a href="#" id="add-link">Add Dog</a>
+                <div id="dog-list" class="columns"></div>
+                <div id="dog-details-column">
+                    <h2>Dogs</h2>
+    
+                    <div id="dog-details"></div>
+                </div>
             </div>
-            <!--<h1>Heartwarming Stories:</h1>
+    
+            <div id="add-edit-dog-container" class="dialog transparent">
+                <span class="close">&times;</span>
+    
+                <h3 id="add-edit-title">Dog</h3>
+                <form id="add-edit-dog-form" method="post">
+                    <input type="hidden" name="_id" value="-1" />
+                    <p>
+                        <label for="name">Dog name:</label>
+                        <input type="text" id="name" name="name" required>
+                    </p>
+                    <p>
+                        <label for="ownerName">Owner Name:</label>
+                        <input type="text" id="ownerName" name="ownerName" required />
+                    </p>
+                    <p id="description-p ">
+                        <label class="inline">Description:</label>
+                        <a href="#" id="add-description">Add Description</a>
+                        <section id="description-boxes"></section>
+                    </p>
+                    <p>
+                        <label for="img">Upload Image:</label>
+                        <input type="file" id="img" name="img" />
+                    </p>
+                    <p>
+                        <button type="submit">Submit</button>
+                    </p>
+                </form>
+            </div>
+<!--<h1>Heartwarming Stories:</h1>
             <div id="stories">
                 <div id="dog1">
                     <img id="dog-img" src="../images/success_luna.HEIC" alt="dog1-img">
@@ -51,7 +86,7 @@
                     <h3>Dog 4: Ollie</h3>
                     <p>Ollie is a 3 year old yorkshire terrier that was given to us by a local shelter. He is a very social dog and loves to meet new people and dogs alike. He loves to be bathed regularly and accepts attention from anyone and everyone that meets her. Ollie has also showed his true colors as an educational ambassador for nearby elementary and middle schools.</p>
                 </div>
-            </div>-->
+            </div>
             <div id="story-form">
                 <div id="input">
                     <h2>Add your own success story:</h2>
@@ -88,5 +123,4 @@
                 </div>
                 <section class="hidden" id="new"></section>
                 <div class="hidden" id="new"></div>
-            </div>
-        </main>
+            </div>-->
