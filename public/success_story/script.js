@@ -4,12 +4,21 @@ const toggleNav = () => {
   
   const getDogs = async () => {
     try {
-      return (await fetch("api/dogs/")).json();
+      return (await fetch("https://two42-final.onrender.com/api/dogs")).json();
     } catch (error) {
       console.log(error);
     }
   };
 
+
+  /*const showDogs = async () => {
+    let dogs = await getDogs();
+    let dogsDiv = document.getElementById("recipe-list");
+    recipes.forEach((recipe) => {
+      const section = document.createElement("section");
+      dogsDiv.append(section);
+    });
+  };*/
   const showDogs = async () => {
     try {
       const response = await getDogs();
@@ -17,6 +26,7 @@ const toggleNav = () => {
         const dogs = await response.json();
         const dogsDiv = document.getElementById("dog-list");
         dogsDiv.innerHTML = "";
+        
         dogs.forEach((dog) => {
           const section = document.createElement("section");
           section.classList.add("dog");
@@ -30,9 +40,11 @@ const toggleNav = () => {
           h3.innerHTML = dog.name;
           a.append(h3);
   
-          const img = document.createElement("img");
-          img.src = "https://two42-final.onrender.com" + dog.img;
+          if (dog.img) {
+            const img = document.createElement("img");
+          img.src = "https://two42-final.onrender.com/" + dog.img;
           section.append(img);
+          }
   
           a.onclick = (e) => {
             e.preventDefault();
@@ -157,7 +169,7 @@ const toggleNav = () => {
       console.log("Error posting data");
     }
   
-    let newDog = await response.json();
+    dog = await response.json();
   
     if (form._id.value != -1) {
       displayDetails(dog);
