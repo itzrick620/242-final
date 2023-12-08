@@ -10,7 +10,6 @@ const toggleNav = () => {
     }
   };
 
-
   /*const showDogs = async () => {
     let dogs = await getDogs();
     let dogsDiv = document.getElementById("recipe-list");
@@ -21,10 +20,8 @@ const toggleNav = () => {
   };*/
   const showDogs = async () => {
     try {
-      const response = await getDogs();
-      if (response.ok) {
-        const dogs = await response.json();
-        const dogsDiv = document.getElementById("dog-list");
+        let dogs = await getDogs();
+        let dogsDiv = document.getElementById("dog-list");
         dogsDiv.innerHTML = "";
         
         dogs.forEach((dog) => {
@@ -45,15 +42,11 @@ const toggleNav = () => {
           img.src = "https://two42-final.onrender.com/" + dog.img;
           section.append(img);
           }
-  
           a.onclick = (e) => {
             e.preventDefault();
             displayDetails(dog);
           };
         });
-      } else {
-        console.log("Failed to fetch dogs");
-      }
     } catch (error) {
       console.log(error);
     }
@@ -157,7 +150,7 @@ const toggleNav = () => {
         body: formData,
       });
     } else {
-      console.log(...formData);
+      console.log(formData);
   
       response = await fetch(`https://final-project-l8qk.onrender.com/api/dogs/${form._id.value}`, {
         method: "PUT",

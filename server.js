@@ -69,7 +69,7 @@ app.post("/api/dogs", upload.single("img"), (req, res) => {
   });
 
   if (req.file) {
-      dog.img = "public/" + req.file.filename;
+      dog.img = "../images/" + req.file.filename;
   }
 
   createDog(dog, res);
