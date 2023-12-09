@@ -1,123 +1,97 @@
 const express = require("express");
 const app = express();
-const Joi = require("joi");
-const multer = require("multer");
-app.use(express.static("public"));
-app.use("/uploads", express.static("uploads"));
-app.use(express.json());
-const cors = require("cors");
-app.use(cors());
 const mongoose = require("mongoose");
+const multer = require("multer");
+const path = require('path');
 
+// MongoDB connection (replace with your actual connection string)
+mongoose.connect('mongodb+srv://itzrick620:Sths2022@cluster0.ckyowgv.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('Could not connect to MongoDB', err));
 
-const upload = multer({dest: __dirname + "/public/images/"});
-
-// Connect to MongoDB
-mongoose
-    .connect("mongodb+srv://itzrick620:Sths2022@cluster0.ckyowgv.mongodb.net/?retryWrites=true&w=majority")
-    .then(() => {
-        console.log("Connected to mongodb")
-    })
-    .catch((error) => console.log("Couldn't connect to mongodb", error));
-
-// Create a schema 
+// Dog Schema and Model
 const dogSchema = new mongoose.Schema({
-    owner:String,
-    dogName:String,
-    img:String,
-    desc:[String],
+  dogName: String,
+  ownerName: String,
+  description: String,
+  image: String // This will store the path to the image
 });
 
-const Dog = mongoose.model("Dog", dogSchema);
+const Dog = mongoose.model('Dog', dogSchema);
 
-//Route
-app.get("/api/dog", (req, res) => {
-  getDogData(res);
-});
-
-const getDogData = async (res) => {
-  const dogItems = await Dog.find();
-  res.send(dogItems);
-};
-
-app.post("/api/dog", upload.single("image"), (req, res) => {
-  const result = validateDogItem(req.body);
-
-  if (result.error) {
-    res.status(400).send(result.error.details[0].message);
-    return;
+// Multer configuration for image uploads
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    // Adjust the path according to the section of your site
+    cb(null, path.join(__dirname, 'public/images'));
+  },
+  filename: function(req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
   }
+});
 
-  const dogItem = new Dog({
-    dogName: req.body.dogName,
+const upload = multer({ storage: storage });
+
+// Middleware to serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Routes
+// Create a new dog
+app.post('/api/dog', upload.single('img'), async (req, res) => {
+  const dog = new Dog({
+    dogName: req.body.name,
     ownerName: req.body.ownerName,
-    description: req.body.description.split(","),
+    description: req.body.description,
+    image: req.file ? req.file.path : null // Storing the path to the image if uploaded
   });
 
-  if (req.file) {
-    dogItem.image = "images/" + req.file.filename;
+  try {
+    const savedDog = await dog.save();
+    res.send(savedDog);
+  } catch (error) {
+    res.status(400).send(error.message);
   }
-
-  createDogItem(dogItem, res);
 });
 
-const createDogItem = async (dogItem, res) => {
-  const result = await dogItem.save();
-  res.send(dogItem);
-};
-
-app.put("/api/dog/:id", upload.single("image"), (req, res) => {
-  const result = validateDogItem(req.body);
-
-  if (result.error) {
-    res.status(400).send(result.error.details[0].message);
-    return;
+// Get all dogs
+app.get('/api/dog', async (req, res) => {
+  try {
+    const dogs = await Dog.find();
+    res.send(dogs);
+  } catch (error) {
+    res.status(500).send(error.message);
   }
-
-  updateDogItem(req, res);
 });
 
-const updateDogItem = async (req, res) => {
-  let fieldsToUpdate = {
-    dogName: req.body.dogName,
+// Update a dog (assuming a put request with an existing dog id)
+app.put('/api/dog/:id', upload.single('img'), async (req, res) => {
+  const updatedData = {
+    dogName: req.body.name,
     ownerName: req.body.ownerName,
-    description: req.body.description.split(","),
+    description: req.body.description,
+    image: req.file ? req.file.path : req.body.image
   };
 
-  if (req.file) {
-    fieldsToUpdate.image = "images/" + req.file.filename;
+  try {
+    const dog = await Dog.findByIdAndUpdate(req.params.id, updatedData, { new: true });
+    if (!dog) return res.status(404).send('The dog with the given ID was not found.');
+    res.send(dog);
+  } catch (error) {
+    res.status(400).send(error.message);
   }
-
-  const result = await Dog.updateOne(
-    { _id: req.params.id },
-    fieldsToUpdate
-  );
-  const dogItem = await Dog.findById(req.params.id);
-  res.send(dogItem);
-};
-
-app.delete("/api/dog/:id", upload.single("image"), (req, res) => {
-  removeDogItem(res, req.params.id);
 });
 
-const removeDogItem = async (res, id) => {
-  const dogItem = await Dog.findByIdAndDelete(id);
-  res.send(dogItem);
-};
-
-const validateDogItem = (dogItem) => {
-  const schema = Joi.object({
-    _id: Joi.allow(""),
-    dogName: Joi.string().min(3).required(),
-    ownerName: Joi.string().min(3).required(),
-    description: Joi.string().min(3).required(),
-  });
-
-  return schema.validate(dogItem);
-};
-
-const PORT = 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Delete a dog
+app.delete('/api/dog/:id', async (req, res) => {
+  try {
+    const dog = await Dog.findByIdAndRemove(req.params.id);
+    if (!dog) return res.status(404).send('The dog with the given ID was not found.');
+    res.send(dog);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 });
+
+// Starting the server
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Server listening on port ${port}`));

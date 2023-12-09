@@ -46,8 +46,8 @@
                 <form id="add-edit-dog-form" method="post">
                     <input type="hidden" name="_id" value="-1" />
                     <p>
-                        <label for="name">Dog name:</label>
-                        <input type="text" id="name" name="name" required autocomplete="name">
+                        <label for="dogName">Dog name:</label>
+                        <input type="text" id="dogName" name="dogName" required autocomplete="name">
                     </p>
                     <p>
                         <label for="ownerName">Owner Name:</label>
@@ -55,6 +55,7 @@
                     </p>
                     <p id="description-p">
                         <label for="description" class="inline">Description:</label>
+                        <input type="text" id="description">
                         <a href="#" id="add-description">Add Description</a>
                         <section id="description-boxes"></section>
                     </p>
