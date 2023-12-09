@@ -1,86 +1,151 @@
-const toggleNav = () => {
-  document.getElementById("main-nav-items").classList.toggle("hidden");
-};
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleNav = () => {
+    document.getElementById("main-nav-items").classList.toggle("hidden");
+  };
 
-const showAddDogForm = () => {
-  const formContainer = document.getElementById('add-edit-dog-container');
-  formContainer.classList.toggle('hidden');
-};
+  const showAddDogForm = () => {
+    document.querySelector(".dialog").classList.toggle("transparent");
+    document.getElementById("add-edit-title").innerHTML = "Add Dog";
+    resetForm();
+  };
 
-const fetchDogs = async () => {
-  try {
-    const response = await fetch('/api/dog');
-    const dogs = await response.json();
-    displayDogs(dogs);
-  } catch (error) {
-    console.error('Error fetching dogs:', error);
-  }
-};
-
-const displayDogs = (dogs) => {
-  const dogList = document.getElementById('dog-list');
-  dogList.innerHTML = '';
-
-  dogs.forEach(dog => {
-    if (dog.image) {
-      const dogItem = document.createElement('div');
-      dogItem.innerHTML = `
-        <h3>${dog.dogName}</h3>
-        <p>Owner: ${dog.ownerName}</p>
-        <p>${dog.description}</p>
-        <img src="${dog.image}" alt="Dog image" style="max-width: 200px;"> <!-- Updated to 'img' -->
-      `;
-      dogList.appendChild(dogItem);
-    } else {
-      console.error(`Dog with ID ${dog._id} has no image`);
+  const getDogs = async () => {
+    try {
+      const response = await fetch("/api/dog");
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching dogs:', error);
     }
+  };
+
+  const showDogs = async () => {
+    const dogs = await getDogs();
+    const dogsDiv = document.getElementById("dog-list");
+    dogsDiv.innerHTML = "";
+    dogs.forEach(dog => {
+      const section = document.createElement("section");
+      section.classList.add("dog");
+      section.innerHTML = `
+        <div onclick="displayDetails('${dog._id}');">
+          <h3>${dog.dogName}</h3>
+          <img src="${dog.image}" alt="Dog image" style="max-width: 200px;">
+        </div>
+      `;
+      dogsDiv.appendChild(section);
+    });
+  };
+
+  const displayDetails = async (dogId) => {
+    const response = await fetch(`/api/dog/${dogId}`);
+    if (!response.ok) {
+      console.error(`HTTP error! status: ${response.status}`);
+      return;
+    }
+    const dog = await response.json();
+
+    const dogDetailsDiv = document.getElementById("dog-details");
+    dogDetailsDiv.innerHTML = `
+      <h3>${dog.dogName}</h3>
+      <p>Owner: ${dog.ownerName}</p>
+      <img src="${dog.image}" alt="${dog.dogName}" style="max-width: 200px;">
+      <p>${dog.description}</p>
+      <button onclick="populateEditForm('${dog._id}')">Edit</button>
+      <button onclick="deleteDog('${dog._id}')">Delete</button>
+    `;
+  };
+
+  const populateEditForm = (dogId) => {
+    getDogById(dogId).then(dog => {
+      const form = document.getElementById('add-edit-dog-form');
+      form._id.value = dog._id;
+      form.dogName.value = dog.dogName;
+      form.ownerName.value = dog.ownerName;
+      form.description.value = dog.description;
+      document.getElementById('img-preview').src = dog.image;
+      document.getElementById('img-preview').classList.remove('hidden');
+      showAddDogForm();
+      document.getElementById("add-edit-title").innerHTML = "Edit Dog";
+    }).catch(error => {
+      console.error('Error populating edit form:', error);
+    });
+  };
+
+  const getDogById = async (dogId) => {
+    try {
+      const response = await fetch(`/api/dog/${dogId}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching dog details:', error);
+    }
+  };
+
+  const deleteDog = async (dogId) => {
+    if (!confirm('Are you sure you want to delete this dog?')) return;
+    try {
+      const response = await fetch(`/api/dog/${dogId}`, { method: "DELETE" });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      showDogs();
+      document.getElementById("dog-details").innerHTML = "";
+    } catch (error) {
+      console.error('Error deleting dog:', error);
+    }
+  };
+
+  const submitDog = async (event) => {
+    event.preventDefault();
+    const form = document.getElementById("add-edit-dog-form");
+    const formData = new FormData(form);
+
+    if (form.img.files.length) {
+      formData.append('img', form.img.files[0]);
+    }
+
+    const method = form._id.value === "-1" ? "POST" : "PUT";
+    const endpoint = form._id.value === "-1" ? "/api/dog" : `/api/dog/${form._id.value}`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: method,
+        body: formData
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      showDogs();
+      document.querySelector(".dialog").classList.add("transparent");
+      resetForm();
+    } catch (error) {
+      console.error('Error submitting dog:', error);
+    }
+  };
+
+  const resetForm = () => {
+    const form = document.getElementById("add-edit-dog-form");
+    form.reset();
+    document.getElementById('img-preview').src = '';
+    document.getElementById('img-preview').classList.add('hidden');
+    form._id.value = "-1"; // Reset the hidden ID field for new dog entry.
+  };
+
+  // Function to handle image preview
+  window.previewImage = function (input) {
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('img-preview').src = e.target.result;
+        document.getElementById('img-preview').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById("main-nav-items").classList.toggle("hidden");
   });
-};
 
-const addDescriptionBox = (event) => {
-  event.preventDefault();
-  const descriptionBoxes = document.getElementById('description-boxes');
-  const newTextBox = document.createElement('input');
-  newTextBox.setAttribute('type', 'text');
-  newTextBox.setAttribute('name', 'description');
-  descriptionBoxes.appendChild(newTextBox);
-};
-
-const submitDog = async (event) => {
-  event.preventDefault(); // Prevent the default form submission behavior
-
-  // Get form input values
-  const dogName = document.getElementById('dogName').value;
-  const ownerName = document.getElementById('ownerName').value;
-  const description = document.getElementById('description').value;
-  const img = document.getElementById('img').files[0];
-
-  // Create a FormData object and append the form input values with matching field names
-  const formData = new FormData();
-  formData.append('name', dogName);
-  formData.append('ownerName', ownerName);
-  formData.append('description', description);
-  formData.append('img', img);
-
-  // Send a POST request to the server with the form data
-  const response = await fetch('/api/dog', {
-    method: 'POST',
-    body: formData
-  });
-
-  if (response.ok) {
-    // If the request is successful (status code 200), fetch and display the updated list of dogs
-    fetchDogs();
-    showAddDogForm(); // Hide the add/edit dog form
-  } else {
-    console.error('Error submitting dog');
-  }
-};
-
-
-window.onload = () => {
-  fetchDogs();
-  document.getElementById('add-link').addEventListener('click', showAddDogForm);
-  document.getElementById('add-edit-dog-form').addEventListener('submit', submitDog);
-  document.getElementById('add-description').addEventListener('click', addDescriptionBox);
-};
+  document.getElementById("nav-toggle").onclick = toggleNav;
+  document.getElementById("add-link").onclick = showAddDogForm;
+  document.getElementById("add-edit-dog-form").onsubmit = submitDog;
+  document.querySelector(".close").onclick = showAddDogForm;
+  showDogs();
+});

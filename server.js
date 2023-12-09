@@ -1,8 +1,22 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const Joi = require("joi");
 const multer = require("multer");
 const path = require('path');
+
+// Multer configuration for image uploads
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    // Adjust the path according to the section of your site
+    cb(null, path.join(__dirname, 'public/images'));
+  },
+  filename: function(req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // MongoDB connection (replace with your actual connection string)
 mongoose.connect('mongodb+srv://itzrick620:Sths2022@cluster0.ckyowgv.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
@@ -18,19 +32,6 @@ const dogSchema = new mongoose.Schema({
 });
 
 const Dog = mongoose.model('Dog', dogSchema);
-
-// Multer configuration for image uploads
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    // Adjust the path according to the section of your site
-    cb(null, path.join(__dirname, 'public/images'));
-  },
-  filename: function(req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage: storage });
 
 // Middleware to serve static files
 app.use(express.static(path.join(__dirname, 'public')));
