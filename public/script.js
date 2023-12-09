@@ -2,106 +2,97 @@ const toggleNav = () => {
     document.getElementById("main-nav-items").classList.toggle("hidden");
   };
   
-  const getDogs = async () => {
+  const getDogData = async () => {
     try {
-      return (await fetch("https://two42-final.onrender.com/api/dogs")).json();
+      return (await fetch("api/dog/")).json();
     } catch (error) {
       console.log(error);
     }
   };
-
-  /*const showDogs = async () => {
-    let dogs = await getDogs();
-    let dogsDiv = document.getElementById("recipe-list");
-    recipes.forEach((recipe) => {
+  
+  const showDogData = async () => {
+    let dogData = await getDogData();
+    let dogDiv = document.getElementById("dog-list");
+    dogDiv.innerHTML = "";
+  
+    dogData.forEach((dogItem, index) => {
       const section = document.createElement("section");
-      dogsDiv.append(section);
+      section.classList.add("dog-item");
+      dogDiv.append(section);
+  
+      // Add some margin to separate dog items
+      if (index > 0) {
+        section.style.marginTop = "20px"; // Adjust this value as needed
+      }
+  
+      const a = document.createElement("a");
+      a.href = "#";
+      section.append(a);
+  
+      const h3 = document.createElement("h3");
+      h3.innerHTML = dogItem.dogName;
+      a.append(h3);
+  
+      const img = document.createElement("img");
+      img.src = dogItem.image;
+      section.append(img);
+  
+      a.onclick = (e) => {
+        e.preventDefault();
+        displayDogDetails(dogItem);
+      };
     });
-  };*/
-  const showDogs = async () => {
-    try {
-        let dogs = await getDogs();
-        let dogsDiv = document.getElementById("dog-list");
-        dogsDiv.innerHTML = "";
-        
-        dogs.forEach((dog) => {
-          const section = document.createElement("section");
-          section.classList.add("dog");
-          dogsDiv.append(section);
-  
-          const a = document.createElement("a");
-          a.href = "#";
-          section.append(a);
-  
-          const h3 = document.createElement("h3");
-          h3.innerHTML = dog.name;
-          a.append(h3);
-  
-          if (dog.img) {
-            const img = document.createElement("img");
-          img.src = "https://two42-final.onrender.com/" + dog.img;
-          section.append(img);
-          }
-          a.onclick = (e) => {
-            e.preventDefault();
-            displayDetails(dog);
-          };
-        });
-    } catch (error) {
-      console.log(error);
-    }
   };
   
-  const displayDetails = (dog) => {
+  const displayDogDetails = (dogItem) => {
     const dogDetails = document.getElementById("dog-details");
     dogDetails.innerHTML = "";
   
-    const dLink = document.createElement("a");
-    dLink.innerHTML = "Delete";
-    dogDetails.append(dLink);
-    dLink.id = "delete-link";
-  
-    const eLink = document.createElement("a");
-    eLink.innerHTML = "Edit";
-    dogDetails.append(eLink);
-    eLink.id = "edit-link";
-  
     const h3 = document.createElement("h3");
-    h3.innerHTML = dog.name;
+    h3.innerHTML = dogItem.dogName;
     dogDetails.append(h3);
   
-    const ownerName = document.createElement("p");
-    dogDetails.append(ownerName);
-    ownerName.innerHTML = dog.ownerName;
+    const deleteLink = document.createElement("a");
+    deleteLink.innerHTML = "Delete";
+    dogDetails.append(deleteLink);
+    deleteLink.id = "delete-link";
+  
+    const editLink = document.createElement("a");
+    editLink.innerHTML = "Edit";
+    dogDetails.append(editLink);
+    editLink.id = "edit-link";
+  
+    const p = document.createElement("p");
+    dogDetails.append(p);
+    p.innerHTML = dogItem.ownerName;
   
     const ul = document.createElement("ul");
     dogDetails.append(ul);
-    console.log(dog.description);
-    dog.description.forEach((desc) => {
+    dogItem.description.forEach((description) => {
       const li = document.createElement("li");
       ul.append(li);
-      li.innerHTML = desc;
+      li.innerHTML = description;
     });
   
-    eLink.onclick = (e) => {
+    editLink.onclick = (e) => {
       e.preventDefault();
       document.querySelector(".dialog").classList.remove("transparent");
-      document.getElementById("add-edit-title").innerHTML = "Edit Dog";
+      document.getElementById("add-edit-title").innerHTML = "Edit Dog Item";
     };
   
-    dLink.onclick = (e) => {
+    deleteLink.onclick = (e) => {
       e.preventDefault();
-      deleteDog(dog);
+      deleteDogItem(dogItem);
     };
   
-    populateEditForm(dog);
+    populateEditForm(dogItem);
   };
   
-  const deleteDog = async (dog) => {
-    let response = await fetch(`https://two42-final.onrender.com/api/dogs/${dog._id}`, {
+  const deleteDogItem = async (dogItem) => {
+    let response = await fetch(`/api/dog/${dogItem._id}`, {
       method: "DELETE",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json;charset=utf-8",
       },
     });
   
@@ -111,66 +102,71 @@ const toggleNav = () => {
     }
   
     let result = await response.json();
-    showDogs();
+    showDogData();
     document.getElementById("dog-details").innerHTML = "";
     resetForm();
   };
   
-  const populateEditForm = (dog) => {
+  const populateEditForm = (dogItem) => {
     const form = document.getElementById("add-edit-dog-form");
-    form._id.value = dog._id;
-    form.name.value = dog.name;
-    form.ownerName.value = dog.ownerName;
-    populateDesc(dog);
+    form._id.value = dogItem._id;
+    form.name.value = dogItem.dogName;
+    form.ownerName.value = dogItem.ownerName
+    form.description.value = dogItem.description;
+    populateDescription(dogItem);
   };
   
-  const populateDesc = (dog) => {
+  const populateDescription = (dogItem) => {
     const section = document.getElementById("description-boxes");
   
-    dog.description.forEach((desc) => {
+    dogItem.description.forEach((description) => {
       const input = document.createElement("input");
       input.type = "text";
-      input.value = desc;
+      input.value = description;
       section.append(input);
     });
   };
   
-  const addEditDog = async (e) => {
+  const addEditDogItem = async (e) => {
     e.preventDefault();
     const form = document.getElementById("add-edit-dog-form");
     const formData = new FormData(form);
     let response;
     formData.append("description", getDescription());
   
+    // Adding a new dog item
     if (form._id.value == -1) {
       formData.delete("_id");
   
-      response = await fetch("https://final-project-l8qk.onrender.com/api/dogs", {
+      response = await fetch("/api/dog", {
         method: "POST",
         body: formData,
       });
-    } else {
-      console.log(formData);
+    }
+    // Editing an existing dog item
+    else {
+      console.log(...formData);
   
-      response = await fetch(`https://final-project-l8qk.onrender.com/api/dogs/${form._id.value}`, {
+      response = await fetch(`/api/dog/${form._id.value}`, {
         method: "PUT",
         body: formData,
       });
     }
   
+    // Successful data retrieval from server
     if (response.status != 200) {
       console.log("Error posting data");
     }
   
-    dog = await response.json();
+    dogItem = await response.json();
   
     if (form._id.value != -1) {
-      displayDetails(dog);
+      displayDogDetails(dogItem);
     }
   
     resetForm();
     document.querySelector(".dialog").classList.add("transparent");
-    showDogs();
+    showDogData();
   };
   
   const getDescription = () => {
@@ -181,20 +177,20 @@ const toggleNav = () => {
       description.push(input.value);
     });
   
-    return description;
+    return players;
   };
   
   const resetForm = () => {
     const form = document.getElementById("add-edit-dog-form");
     form.reset();
-    form._id.value = "-1";
+    form._id = "-1";
     document.getElementById("description-boxes").innerHTML = "";
   };
   
   const showHideAdd = (e) => {
     e.preventDefault();
     document.querySelector(".dialog").classList.remove("transparent");
-    document.getElementById("add-edit-title").innerHTML = "Add Dog";
+    document.getElementById("add-edit-title").innerHTML = "Add Dog Item";
     resetForm();
   };
   
@@ -205,9 +201,9 @@ const toggleNav = () => {
     input.type = "text";
     section.append(input);
   };
-  
+    
   window.onload = () => {
-    showDogs();
+    showDogData();
     document.getElementById("add-edit-dog-form").onsubmit = addEditDog;
     document.getElementById("add-link").onclick = showHideAdd;
   

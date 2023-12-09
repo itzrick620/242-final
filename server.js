@@ -9,16 +9,8 @@ const cors = require("cors");
 app.use(cors());
 const mongoose = require("mongoose");
 
-const storage = multer.diskStorage({
-  destination:(req, file, cb) => {
-    cb(null, "public");
-  },
-  filename:(req, file, cb) => {
-    cb(null, file.originalname);
-  }
-});
 
-const upload = multer({storage: storage});
+const upload = multer({dest: __dirname + "/public/images/"});
 
 // Connect to MongoDB
 mongoose
@@ -33,105 +25,96 @@ const dogSchema = new mongoose.Schema({
     owner:String,
     dogName:String,
     img:String,
-    desc:String,
+    desc:[String],
 });
 
 const Dog = mongoose.model("Dog", dogSchema);
 
 //Route
-app.get("/api/dogs", (req, res) => {
-  getDogs(res);
+app.get("/api/dog", (req, res) => {
+  getDogData(res);
 });
 
-const getDogs = async (res) => {
-  const dogs = await Dog.find();
-  res.send(dogs);
-}
+const getDogData = async (res) => {
+  const dogItems = await Dog.find();
+  res.send(dogItems);
+};
 
-app.get("/api/dogs:id", (req, res) => {
-  res.send(dogs);
-});
-
-
-app.post("/api/dogs", upload.single("img"), (req, res) => {
-  const result = validateDog(req.body);
+app.post("/api/dog", upload.single("image"), (req, res) => {
+  const result = validateDogItem(req.body);
 
   if (result.error) {
-      res.status(400).send(result.error.details[0].message);
-      return;
+    res.status(400).send(result.error.details[0].message);
+    return;
   }
 
-  const dog = new Dog({
-      owner: req.body.owner,
-      emailOwner: req.body.emailOwner,
-      dogName: req.body.dogName,
-      desc: req.body.desc,
+  const dogItem = new Dog({
+    dogName: req.body.dogName,
+    ownerName: req.body.ownerName,
+    description: req.body.description.split(","),
   });
 
   if (req.file) {
-      dog.img = "../images/" + req.file.filename;
+    dogItem.image = "images/" + req.file.filename;
   }
 
-  createDog(dog, res);
+  createDogItem(dogItem, res);
 });
 
-const createDog = async (dog, res) => {
-  const result = await dog.save();
-  res.send(dog);
+const createDogItem = async (dogItem, res) => {
+  const result = await dogItem.save();
+  res.send(dogItem);
 };
 
-app.put("/api/dogs/:id", upload.single("img"), (req, res) => {
-  const result = validateDog(req.body);
+app.put("/api/dog/:id", upload.single("image"), (req, res) => {
+  const result = validateDogItem(req.body);
 
   if (result.error) {
-      res.status(400).send(result.error.details[0].message);
-      return;
+    res.status(400).send(result.error.details[0].message);
+    return;
   }
 
-  updateDog(req, res);
+  updateDogItem(req, res);
 });
 
-const updateDog = async (req, res) => {
+const updateDogItem = async (req, res) => {
   let fieldsToUpdate = {
-    owner: req.body.owner,
-    emailOwner: req.body.emailOwner,
     dogName: req.body.dogName,
-    desc: req.body.desc,
+    ownerName: req.body.ownerName,
+    description: req.body.description.split(","),
   };
 
-  if(req.file) {
-      fieldsToUpdate.img = "public/" + req.file.filename;
+  if (req.file) {
+    fieldsToUpdate.image = "images/" + req.file.filename;
   }
 
-  const result = await Dog.updateOne({_id: req.params.id}, fieldsToUpdate);
-  const dog = await Dog.findById(req.params.id);
-  res.send(dog);
+  const result = await Dog.updateOne(
+    { _id: req.params.id },
+    fieldsToUpdate
+  );
+  const dogItem = await Dog.findById(req.params.id);
+  res.send(dogItem);
 };
 
-app.delete("/api/dogs/:id", upload.single("img"), (req, res) => {
-  removeDog(res, req.params.id);
+app.delete("/api/dog/:id", upload.single("image"), (req, res) => {
+  removeDogItem(res, req.params.id);
 });
 
-const removeDog = async (res, id) => {
-  const dog = await Dog.findByIdAndDelete(id);
-  res.send(dog);
+const removeDogItem = async (res, id) => {
+  const dogItem = await Dog.findByIdAndDelete(id);
+  res.send(dogItem);
 };
 
-const validateDog = (dog) => {
+const validateDogItem = (dogItem) => {
   const schema = Joi.object({
-      _id: Joi.allow(""),
-      desc: Joi.allow(""),
-      dogName: Joi.string().min(3).required(),
-      owner: Joi.string().min(3).required(),
-      emailOwner: Joi.string().min(3).required(),
+    _id: Joi.allow(""),
+    dogName: Joi.string().min(3).required(),
+    ownerName: Joi.string().min(3).required(),
+    description: Joi.string().min(3).required(),
   });
 
-  return schema.validate(dog);
+  return schema.validate(dogItem);
 };
-
-app.get("/", (req, res) => {
-  res.send("Dog API Working")
-})
 
 const PORT = 3000;
 
