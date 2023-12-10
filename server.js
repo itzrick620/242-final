@@ -1,96 +1,110 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const Joi = require("joi");
+//const cors = require("cors");
 const multer = require("multer");
-const path = require('path');
+const path = require("path");
 
-// Multer configuration for image uploads
+//app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+//Serves static files
+app.use(express.static("public"));
+
+// Multer configuration
 const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    // Adjust the path according to the section of your site
-    cb(null, path.join(__dirname, 'public/images'));
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, 'public/images')); // Make sure this directory exists
   },
-  filename: function(req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
 });
 
 const upload = multer({ storage: storage });
+mongoose
+    .connect("mongodb+srv://itzrick620:Sths2022@cluster0.ckyowgv.mongodb.net/?retryWrites=true&w=majority")
+    .then(() => console.log("Connected to MongoDB"))
+    .catch((error) => console.error("Couldn't connect to MongoDB", error));
 
-// MongoDB connection (replace with your actual connection string)
-mongoose.connect('mongodb+srv://itzrick620:Sths2022@cluster0.ckyowgv.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Could not connect to MongoDB', err));
-
-// Dog Schema and Model
+// Define schema and model
 const dogSchema = new mongoose.Schema({
-  dogName: String,
-  ownerName: String,
-  description: String,
-  image: String // This will store the path to the image
+    dogName: String,
+    ownerName: String,
+    description: String,
+    image: String,
 });
 
-const Dog = mongoose.model('Dog', dogSchema);
+const Dog = mongoose.model("Dog", dogSchema);
 
-// Middleware to serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+// Dog Endpoints
+app.get("/api/dog", async (req, res) => {
+    try {
+        const dogs = await Dog.find();
+        res.send(dogs);
+    } catch (error) {
+        res.status(500).send("Error retrieving dogs: " + error.message);
+    }
+});
 
-// Routes
-// Create a new dog
-app.post('/api/dog', upload.single('img'), async (req, res) => {
-  const dog = new Dog({
-    dogName: req.body.name,
-    ownerName: req.body.ownerName,
-    description: req.body.description,
-    image: req.file ? req.file.path : null // Storing the path to the image if uploaded
-  });
-
+app.post("/api/dog", upload.single('img'), async (req, res) => {
   try {
-    const savedDog = await dog.save();
-    res.send(savedDog);
+    let imagepath;
+    if (req.file) {
+      imagepath = '/images/' + req.file.filename; // Path where the image is stored
+    }
+    
+    const newDog = new Dog({
+      dogName: req.body.dogName,
+      ownerName: req.body.ownerName,
+      description: req.body.description,
+      image: imagepath,
+    });
+
+    const savedDog = await newDog.save();
+    res.status(201).send(savedDog);
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(500).send("Error creating dog: " + error.message);
   }
 });
 
-// Get all dogs
-app.get('/api/dog', async (req, res) => {
-  try {
-    const dogs = await Dog.find();
-    res.send(dogs);
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
+app.put("/api/dog/:id", upload.single('img'), async (req, res) => {
+    try {
+        const updatedDog = await Dog.findByIdAndUpdate(
+            req.params.id,
+            {
+                dogName: req.body.dogName,
+                ownerName: req.body.ownerName,
+                description: req.body.description,
+                image: req.body.image // Handle image update logic here
+            },
+            { new: true }
+        );
+        if (!updatedDog) {
+            return res.status(404).send("Dog not found.");
+        }
+        res.send(updatedDog);
+    } catch (error) {
+        res.status(500).send("Error updating dog: " + error.message);
+    }
 });
 
-// Update a dog (assuming a put request with an existing dog id)
-app.put('/api/dog/:id', upload.single('img'), async (req, res) => {
-  const updatedData = {
-    dogName: req.body.name,
-    ownerName: req.body.ownerName,
-    description: req.body.description,
-    image: req.file ? req.file.path : req.body.image
-  };
-
-  try {
-    const dog = await Dog.findByIdAndUpdate(req.params.id, updatedData, { new: true });
-    if (!dog) return res.status(404).send('The dog with the given ID was not found.');
-    res.send(dog);
-  } catch (error) {
-    res.status(400).send(error.message);
-  }
+app.delete("/api/dog/:id", async (req, res) => {
+    try {
+        const deletedDog = await Dog.findByIdAndDelete(req.params.id);
+        if (!deletedDog) {
+            return res.status(404).send("Dog not found.");
+        }
+        res.send(deletedDog);
+    } catch (error) {
+        res.status(500).send("Error deleting dog: " + error.message);
+    }
 });
 
-// Delete a dog
-app.delete('/api/dog/:id', async (req, res) => {
-  try {
-    const dog = await Dog.findByIdAndRemove(req.params.id);
-    if (!dog) return res.status(404).send('The dog with the given ID was not found.');
-    res.send(dog);
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
+// Default page
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/home/index.html");
 });
 
 // Starting the server

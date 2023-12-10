@@ -3,7 +3,7 @@
     <head>
         <title>Success Stories - ColumbiaStraySavers</title>
         <link rel="stylesheet" href="styles.css">
-        <script src="script.js"></script>
+        <script src="script.js" defer></script>
     </head>
 
     <body>
@@ -25,10 +25,6 @@
                 </ul>
             </nav>
         </header>
-        <div id="success-story-blurb">
-            <p>Here, we celebrate the remarkable journeys of dogs who've found their forever homes and the joy they bring to their adoptive families. These heartwarming tales of resilience, love, and second chances serve as a testament to the profound impact of dog adoption and inspire others to open their hearts and homes to deserving canine companions.</p>
-        </div>
-
             <div class="columns two-columns">
                 <a href="#" id="add-link">Add Dog</a>
                 <div id="dog-list" class="columns"></div>
@@ -44,7 +40,7 @@
                 <span class="close">&times;</span>
     
                 <h3 id="add-edit-title">Dog</h3>
-                <form id="add-edit-dog-form" method="post">
+                <form id="add-edit-dog-form" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="_id" value="-1" />
                     <p>
                         <label for="dogName">Dog name:</label>
@@ -56,7 +52,7 @@
                     </p>
                     <p id="description-p">
                         <label for="description" class="inline">Description:</label>
-                        <input type="text" id="description">
+                        <input type="text" id="description" name="description" required>
                         <a href="#" id="add-description">Add Description</a>
                         <section id="description-boxes"></section>
                     </p>
@@ -69,6 +65,7 @@
                         <button type="submit">Submit</button>
                     </p>
                 </form>
+                <div id="status-message"></div>
             </div>
         </body>
     </html>

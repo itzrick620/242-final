@@ -1,177 +1,175 @@
 :root {
-    --primary: coral;
-    --secondary: cornflowerblue;
+    /* Color Palette */
+    --background-color: #FBE292;
+    --header-footer-bg: #7A6DA6;
+    --primary-color: #310273;
+    --secondary-color: #a65132;
+    --link-color: #A65132;
+    --link-hover-color: #310273;
+    --border-color: #310273;
 }
 
-/* General styles */
 body {
+    background-color: var(--background-color);
     font-family: Arial, Helvetica, sans-serif;
-    background-color: azure;
+    margin: 0;
+    padding: 0;
 }
 
+/* Header and Footer */
+#main-header,
+#main-footer {
+    background-color: var(--header-footer-bg);
+    color: var(--primary-color);
+    padding: 20px 40px;
+    text-align: center;
+}
+
+#main-header h1,
+#main-header h2 {
+    color: var(--secondary-color);
+}
+
+/* Navigation */
+#main-nav {
+    background-color: #7A6DA6;
+}
+
+#main-nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#main-nav li {
+    padding: 10px;
+    text-align: center;
+}
+
+#main-nav a {
+    text-decoration: none;
+    color: #310273;
+    transition: color 0.3s;
+    display:block;
+}
+
+#main-nav a:hover {
+    color: var(--link-hover-color);
+}
+
+/*Hamburger Menu*/
+
+#nav-toggle div {
+    width: 35px;
+    height: 5px;
+    background-color: #a65132;
+    margin: 6px 0;
+}
+/* Dog List and Details */
 #dog-list,
-#dog-details-column {
-    padding: 10px;
-    margin: 10px;
-    background: var(--secondary);
+#selected-dog {
+    padding: 20px;
+    margin: 20px;
+    background: white;
+    border: 3px solid var(--border-color);
+    border-radius: 10px;
+}
+
+#dog-list img,
+#selected-dog img {
+    max-width: 100%;
     border-radius: 5px;
+    margin-bottom: 10px;
+    padding: 5px;
 }
 
-#add-link {
-    font-size: 2em;
-    border: 1px solid var(--primary);
+/* Form Styles */
+input[type="text"],
+input[type="file"],
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
 }
 
-#add-edit-dog-container {
-    padding: 10px;
-    margin: 10px;
-    background: var(--secondary);
+button,
+input[type="submit"] {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 10px 15px;
     border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-/* Form */
-label {
-    display: block;
-}
-
-.inline {
-    display: inline;
-}
-
-#players-p input {
-    margin-top: 5px;
-}
-
-#add-player {
-    color: darkblue;
-    font-size: 0.75em;
-    text-align: right;
+button:hover,
+input[type="submit"]:hover {
+    background-color: var(--link-hover-color);
 }
 
 /* Modal Dialog */
-#modal-background {
-    position: fixed;
-    z-index: 1;
-    padding-top: 100px;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: scroll;
-    background-color: rgb(0, 0, 0);
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-/* Modal Content */
 .dialog {
-    background-color: #fefefe;
-    margin: auto;
+    background-color: white;
     padding: 20px;
-    border: 1px solid #888;
-    width: 100%;
+    border-radius: 5px;
+    display: none;
 }
 
-.dialog img {
-    max-width: fit-content;
+.dialog.visible {
     display: block;
-    padding: 30px 5px 30px 30px;
-    margin: auto;
 }
 
-/* The Close Button */
 .close {
-    color: #aaaaaa;
     float: right;
-    font-size: 28px;
-    font-weight: bold;
-    padding: 0px 5px;
-}
-
-.close:hover,
-.close:focus {
-    color: #000;
-    text-decoration: none;
+    font-size: 24px;
+    color: var(--secondary-color);
     cursor: pointer;
 }
 
-.columns .dog-item {
-    margin-bottom: 20px; /* Adjust this value as needed */
-    width: 100%; /* Ensure dog items take full width */
-    display: block; /* Ensure they stack on top of each other */
+.close:hover {
+    color: var(--link-hover-color);
 }
 
 /* Typography */
 a {
     text-decoration: none;
-    color: var(--primary);
+    color: var(--link-color);
 }
-
 .hidden {
     display: none;
 }
 
-.transparent {
-    opacity: 0;
+/* Smaller Resolutions - Hamburger Menu Display */
+@media screen and (max-width: 600px) {
+    #main-nav-items.hidden {
+        display: none;
+    }
+
+    #nav-toggle {
+        display: block; /* Show hamburger menu */
+    }
 }
 
-/* Larger Resolutions */
-@media (min-width: 600px) {
-    .columns {
+/* Layout for Larger Screens */
+@media screen and (min-width: 601px) {
+    #main-nav-items {
         display: flex;
-        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
     }
-    .two-columns div {
-        flex: 1;
+
+    #main-nav li {
+        margin-right: 20px;
     }
-    #dog-list,
-    #dog-details-column {
-        width: 48%;
+
+    #main-nav li:last-child {
+        margin-right: 0;
     }
-    #add-edit-dog-container {
-        max-width: 30%;
-        margin: auto;
+
+    #nav-toggle {
+        display: none; /* Hide hamburger menu */
     }
-}
-
-
-/* Navigation Styles */
-#main-header {
-    background-color: #333;
-    color: white;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#main-header h1 {
-    margin: 0;
-    font-size: 24px;
-}
-
-#main-nav {
-    display: flex;
-    align-items: center;
-}
-
-#main-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-}
-
-#main-nav li {
-    margin-right: 20px;
-}
-
-#main-nav a {
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    transition: color 0.3s ease;
-}
-
-#main-nav a:hover {
-    color: coral;
 }
